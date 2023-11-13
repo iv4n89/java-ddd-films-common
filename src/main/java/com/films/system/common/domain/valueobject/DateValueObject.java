@@ -3,10 +3,10 @@ package com.films.system.common.domain.valueobject;
 import java.util.Date;
 import java.util.Objects;
 
-public class DateValueObject {
+public abstract class DateValueObject extends ValueObject {
   private final Date value;
 
-  public DateValueObject(Date value) {
+  protected DateValueObject(Date value) {
     this.value = value;
   }
 

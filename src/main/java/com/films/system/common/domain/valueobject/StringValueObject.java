@@ -2,10 +2,10 @@ package com.films.system.common.domain.valueobject;
 
 import java.util.Objects;
 
-public class StringValueObject {
+public abstract class StringValueObject extends ValueObject {
   private final String value;
 
-  public StringValueObject(String value) {
+  protected StringValueObject(String value) {
     this.value = value;
   }
 

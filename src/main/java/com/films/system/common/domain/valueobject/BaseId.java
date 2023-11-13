@@ -1,8 +1,9 @@
 package com.films.system.common.domain.valueobject;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public abstract class BaseId<T> {
+public abstract class BaseId<T> implements Serializable {
     private final T value;
 
     public BaseId(T value) {
