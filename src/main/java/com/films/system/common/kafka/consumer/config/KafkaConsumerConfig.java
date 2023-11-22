@@ -1,71 +1,52 @@
 package com.films.system.common.kafka.consumer.config;
 
-import com.films.system.common.kafka.configuration.KafkaConfigData;
-import com.films.system.common.kafka.configuration.KafkaConsumerConfigData;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
 @RequiredArgsConstructor
-public class KafkaConsumerConfig<K extends Serializable, V extends Serializable> {
-  private final KafkaConfigData kafkaConfigData;
-  private final KafkaConsumerConfigData kafkaConsumerConfigData;
+@EnableKafka
+public class KafkaConsumerConfig<T> {
+
+  @Value("${kafka-config.bootstrap-servers}")
+  private String bootstrapServers;
+
+  @Value("${kafka-config.consumer.group-id}")
+  private String consumerGroupId;
 
   @Bean
   public Map<String, Object> consumerConfig() {
     Map<String, Object> props = new HashMap<>();
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfigData.getBootstrapServers());
-    props.put(
-        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, kafkaConsumerConfigData.getKeyDeserializer());
-    props.put(
-        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-        kafkaConsumerConfigData.getValueDeserializer());
-    props.put(
-        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, kafkaConsumerConfigData.getAutoOffsetReset());
-    props.put(kafkaConfigData.getSchemaRegistryUrlKey(), kafkaConfigData.getSchemaRegistryUrl());
-    props.put(
-        ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, kafkaConsumerConfigData.getSessionTimeoutMs());
-    props.put(
-        ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG,
-        kafkaConsumerConfigData.getHeartbeatIntervalMs());
-    props.put(
-        ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, kafkaConsumerConfigData.getMaxPollIntervalMs());
-    props.put(
-        ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG,
-        kafkaConsumerConfigData.getMaxPartitionFetchBytesDefault()
-            * kafkaConsumerConfigData.getMaxPartitionFetchBytesBoostFactor());
-    props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, kafkaConsumerConfigData.getMaxPollRecords());
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
     return props;
   }
 
   @Bean
-  public ConsumerFactory<K, V> consumerFactory() {
+  public ConsumerFactory<String, T> consumerFactory() {
     return new DefaultKafkaConsumerFactory<>(consumerConfig());
   }
 
   @Bean
-  public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<K, V>>
-      kafkaListenerContainerFactory() {
-    ConcurrentKafkaListenerContainerFactory<K, V> factory =
+  public ConcurrentKafkaListenerContainerFactory<String, T> kafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, T> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(consumerFactory());
-    factory.setBatchListener(kafkaConsumerConfigData.getBatchListener());
-    factory.setConcurrency(kafkaConsumerConfigData.getConcurrencyLevel());
-    factory.setAutoStartup(kafkaConsumerConfigData.getAutoStartup());
-    factory.getContainerProperties().setPollTimeout(kafkaConsumerConfigData.getPollTimeoutMs());
     return factory;
   }
 }

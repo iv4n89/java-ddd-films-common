@@ -2,14 +2,14 @@ package com.films.system.common.application.dto.message;
 
 import lombok.*;
 
-import java.io.Serializable;
+import java.util.UUID;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public final class CommentCreatedMessageDto implements Serializable {
-    private CommentMessageDto comment;
+public class CommentCreatedMessageDto {
+    private UUID filmId;
     private Integer meanRating;
 }
